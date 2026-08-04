@@ -19,6 +19,43 @@ load_dotenv()
 PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+
+def build_contextual_query(query: str, messages: list[dict], max_turns: int = 3) -> str:
+    '''Attach recent user turns so short follow-up questions remain searchable.'''
+    previous_questions = [
+        message['content']
+        for message in messages
+        if message.get('role') == 'user' and message.get('content')
+    ][-max_turns:]
+    if not previous_questions:
+        return query
+    history = '\n'.join(f'- {question}' for question in previous_questions)
+    return f'Lịch sử câu hỏi gần đây:\n{history}\n\nCâu hỏi hiện tại: {query}'
+
+
+def source_details(chunk: dict, index: int) -> tuple[str, str, float, str]:
+    '''Normalise metadata from hybrid and PageIndex retrieval.'''
+    metadata = chunk.get('metadata') or {}
+    name = metadata.get('source') or metadata.get('document') or metadata.get('path') or f'Tài liệu {index}'
+    doc_type = metadata.get('type') or metadata.get('section') or 'unknown'
+    score = float(chunk.get('score') or 0.0)
+    content = str(chunk.get('content') or '')
+    return str(name), str(doc_type), score, content
+
+
+def normalise_sources(chunks: list[dict]) -> list[dict]:
+    '''Add display fields without mutating retrieval results.'''
+    normalised = []
+    for index, chunk in enumerate(chunks, 1):
+        item = dict(chunk)
+        metadata = dict(item.get('metadata') or {})
+        name, doc_type, _, _ = source_details(item, index)
+        metadata.setdefault('source', name)
+        metadata.setdefault('type', doc_type)
+        item['metadata'] = metadata
+        normalised.append(item)
+    return normalised
+
 # =============================================================================
 # PAGE CONFIG
 # =============================================================================
@@ -35,6 +72,11 @@ st.set_page_config(
 # =============================================================================
 
 with st.sidebar:
+    if st.button('Xóa hội thoại', use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.pending_query = None
+        st.rerun()
+
     st.title("🛒 E-commerce Support RAG")
     st.caption("Trợ lý hỏi đáp về chính sách thương mại điện tử và hỗ trợ khách hàng (đổi trả, thanh toán, bảo mật, người bán)")
 
@@ -118,7 +160,9 @@ if query:
                 # sources = response.get("sources", [])
 
                 from src.task10_generation import generate_with_citation
-                response = generate_with_citation(query, top_k=top_k)
+                generation_query = build_contextual_query(query, st.session_state.messages[:-1])
+                response = generate_with_citation(generation_query, top_k=top_k)
+                response['sources'] = normalise_sources(response.get('sources', []))
                 answer = response.get("answer", "Chưa thể trả lời.")
                 sources = response.get("sources", [])
 
