@@ -6,15 +6,14 @@ from pathlib import Path
 
 CHROMA_DIR = Path(__file__).parent.parent / "chroma_db"
 COLLECTION_NAME = "ecommerce_support_docs"
-EMBEDDING_MODEL = "BAAI/bge-m3"
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 @lru_cache(maxsize=1)
 def _get_embedding_model():
     """Dùng đúng embedding model đã cấu hình ở Task 4."""
-    from sentence_transformers import SentenceTransformer
-
-    return SentenceTransformer(EMBEDDING_MODEL)
+    from src.task4_chunking_indexing import get_embedding_model
+    return get_embedding_model()
 
 
 def _get_collection():
