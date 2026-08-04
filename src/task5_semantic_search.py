@@ -1,64 +1,109 @@
-"""
-Task 5 — Semantic Search Module.
+"""Task 5 — Semantic Search trên ChromaDB, hỗ trợ HyDE tùy chọn."""
 
-Viết module tìm kiếm ngữ nghĩa (dense retrieval) trên vector store.
+import os
+from functools import lru_cache
+from pathlib import Path
 
-Yêu cầu:
-    - Input: query string + top_k
-    - Output: danh sách chunks có score, sorted descending
-    - Phải tương thích với embedding model và vector store ở Task 4
-"""
+CHROMA_DIR = Path(__file__).parent.parent / "chroma_db"
+COLLECTION_NAME = "ecommerce_support_docs"
+EMBEDDING_MODEL = "BAAI/bge-m3"
 
 
-def semantic_search(query: str, top_k: int = 10) -> list[dict]:
-    """
-    Tìm kiếm ngữ nghĩa sử dụng vector similarity.
+@lru_cache(maxsize=1)
+def _get_embedding_model():
+    """Dùng đúng embedding model đã cấu hình ở Task 4."""
+    from sentence_transformers import SentenceTransformer
 
-    Args:
-        query: Câu truy vấn
-        top_k: Số lượng kết quả tối đa
+    return SentenceTransformer(EMBEDDING_MODEL)
 
-    Returns:
-        List of {
-            'content': str,      # Nội dung chunk
-            'score': float,      # Cosine similarity score
-            'metadata': dict     # source, doc_type, chunk_index
-        }
-        Sorted by score descending.
-    """
-    # TODO: Implement semantic search
-    #
-    # Bước 1: Embed query bằng cùng model ở Task 4
-    # Bước 2: Query vector store (cosine similarity)
-    # Bước 3: Return top_k results
-    #
-    # Ví dụ với ChromaDB:
-    # from .task4_chunking_indexing import get_collection, get_embedding_model
-    #
-    # model = get_embedding_model()
-    # query_vector = model.encode(query).tolist()
-    #
-    # collection = get_collection()
-    # results = collection.query(
-    #     query_embeddings=[query_vector],
-    #     n_results=top_k,
-    #     include=["documents", "metadatas", "distances"],
-    # )
-    #
-    # output = []
-    # for doc, meta, dist in zip(
-    #     results["documents"][0], results["metadatas"][0], results["distances"][0]
-    # ):
-    #     score = max(0.0, 1.0 - dist)  # cosine distance → similarity
-    #     output.append({"content": doc, "score": round(score, 4), "metadata": meta})
-    #
-    # output.sort(key=lambda x: x["score"], reverse=True)
-    # return output[:top_k]
-    raise NotImplementedError("Implement semantic_search")
+
+def _get_collection():
+    """Mở collection do Task 4 tạo trong persistent ChromaDB."""
+    import chromadb
+
+    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+    return client.get_collection(name=COLLECTION_NAME)
+
+
+def generate_hypothetical_document(query: str) -> str:
+    """Sinh hypothetical document; thiếu API key thì dùng query gốc an toàn."""
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        return query
+
+    try:
+        from openai import OpenAI
+
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://openrouter.ai/api/v1",
+        )
+        response = client.chat.completions.create(
+            model=os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
+            messages=[{
+                "role": "user",
+                "content": (
+                    "Viết một đoạn tài liệu ngắn có khả năng trả lời câu hỏi sau. "
+                    "Chỉ viết nội dung giả định, không thêm trích dẫn: " + query
+                ),
+            }],
+            temperature=0.0,
+        )
+        passage = response.choices[0].message.content
+        return passage.strip() if passage else query
+    except Exception:
+        return query
+
+
+def semantic_search(
+    query: str,
+    top_k: int = 10,
+    use_hyde: bool = False,
+) -> list[dict]:
+    """Tìm kiếm dense retrieval và trả kết quả theo cosine similarity giảm dần."""
+    if top_k <= 0 or not query.strip():
+        return []
+
+    # Vector store thuộc Task 4 có thể chưa được Role 2 tạo xong.
+    if not CHROMA_DIR.exists():
+        return []
+
+    try:
+        collection = _get_collection()
+    except (ImportError, ValueError):
+        return []
+
+    search_text = generate_hypothetical_document(query) if use_hyde else query
+    model = _get_embedding_model()
+    query_vector = model.encode(search_text).tolist()
+
+    count = collection.count()
+    if count == 0:
+        return []
+
+    results = collection.query(
+        query_embeddings=[query_vector],
+        n_results=min(top_k, count),
+        include=["documents", "metadatas", "distances"],
+    )
+
+    documents = (results.get("documents") or [[]])[0]
+    metadatas = (results.get("metadatas") or [[]])[0]
+    distances = (results.get("distances") or [[]])[0]
+    output = []
+    for document, metadata, distance in zip(documents, metadatas, distances):
+        similarity = max(0.0, min(1.0, 1.0 - float(distance)))
+        output.append({
+            "content": document,
+            "score": round(similarity, 4),
+            "metadata": metadata or {},
+        })
+
+    output.sort(key=lambda item: item["score"], reverse=True)
+    return output[:top_k]
 
 
 if __name__ == "__main__":
-    # Test
     results = semantic_search("quy định trả hàng hoàn tiền shopee", top_k=5)
-    for r in results:
-        print(f"[{r['score']:.3f}] {r['content'][:100]}...")
+    for result in results:
+        print(f"[{result['score']:.3f}] {result['content'][:100]}...")
