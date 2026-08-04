@@ -32,8 +32,8 @@ GOLDEN_DATASET_PATH = Path(__file__).parent / "golden_dataset.json"
 RESULTS_PATH = Path(__file__).parent / "results.md"
 
 CONFIGS = {
-    "hybrid_rerank": {"use_reranking": True},   # Config A: hybrid search + RRF rerank
-    "no_rerank": {"use_reranking": False},      # Config B: hybrid search, KHÔNG rerank (giữ nguyên thứ tự RRF merge)
+    "hybrid": {"mode": "hybrid"},          # Config A: BM25 + Semantic → RRF merge → rerank (Task 9 đầy đủ)
+    "dense_only": {"mode": "dense_only"},  # Config B: chỉ Semantic Search (Task 5), không BM25, không RRF
 }
 
 
@@ -43,21 +43,33 @@ def load_golden_dataset() -> list[dict]:
         return json.load(f)
 
 
-def _generate_with_config(query: str, top_k: int = 5, use_reranking: bool = True) -> dict:
+def _generate_with_config(query: str, top_k: int = 5, mode: str = "hybrid") -> dict:
     """
-    Chạy pipeline retrieval (Task 9) + generation (Task 10) nhưng cho phép bật/tắt
-    reranking — dùng để dựng 2 config A/B so sánh trong compare_configs().
+    Chạy retrieval (Task 5/6/9) + generation (Task 10) theo 1 trong 2 mode,
+    dùng để dựng Config A (Hybrid) vs Config B (Dense-Only) trong compare_configs().
 
-    Logic sao chép lại từ generate_with_citation() (Task 10), chỉ khác ở việc
-    truyền use_reranking xuống retrieve() thay vì cố định True.
+    Args:
+        mode: "hybrid" — BM25 (Task 6) + Semantic (Task 5) → RRF merge → rerank (Task 9 đầy đủ)
+              "dense_only" — CHỈ semantic_search() (Task 5), bỏ qua BM25 và RRF hoàn toàn
+
+    Logic phần sau (reorder → format_context → gọi LLM) sao chép lại từ
+    generate_with_citation() (Task 10) để giữ nguyên prompt/response format giữa 2 config,
+    chỉ khác nhau ở nguồn retrieval.
     """
-    from src.task9_retrieval_pipeline import retrieve
     from src.task10_generation import (
         SYSTEM_PROMPT, TEMPERATURE, TOP_P, LLM_MODEL,
         reorder_for_llm, format_context,
     )
 
-    chunks = retrieve(query, top_k=top_k, use_reranking=use_reranking)
+    if mode == "dense_only":
+        from src.task5_semantic_search import semantic_search
+        chunks = semantic_search(query, top_k=top_k)
+        for c in chunks:
+            c["source"] = "dense_only"
+    else:
+        from src.task9_retrieval_pipeline import retrieve
+        chunks = retrieve(query, top_k=top_k, use_reranking=True)
+
     if not chunks:
         return {
             "answer": "Tôi không thể xác minh thông tin này từ nguồn hiện có.",
@@ -230,8 +242,8 @@ def evaluate_with_trulens(rag_pipeline, golden_dataset: list[dict]) -> dict:
 def compare_configs(golden_dataset: list[dict]) -> dict:
     """
     So sánh A/B giữa 2 configs (xem CONFIGS ở đầu file):
-    - Config A "hybrid_rerank": hybrid search (BM25 + semantic) + RRF rerank
-    - Config B "no_rerank": hybrid search, KHÔNG rerank (giữ nguyên thứ tự RRF merge thô)
+    - Config A "hybrid": BM25 (Task 6) + Semantic (Task 5) → RRF (Task 7) → rerank
+    - Config B "dense_only": chỉ Semantic Search (Task 5), không BM25, không RRF
 
     Returns:
         {config_name: pandas.DataFrame} — mỗi DataFrame là kết quả evaluate_with_ragas
@@ -240,7 +252,7 @@ def compare_configs(golden_dataset: list[dict]) -> dict:
     results = {}
     for config_name, params in CONFIGS.items():
         def generate_fn(question, _params=params):
-            return _generate_with_config(question, use_reranking=_params["use_reranking"])
+            return _generate_with_config(question, mode=_params["mode"])
 
         results[config_name] = evaluate_with_ragas(generate_fn, golden_dataset)
 
@@ -263,8 +275,8 @@ def export_results(comparison: dict, config_labels: dict | None = None):
         config_labels: {config_name: mô tả hiển thị}, mặc định lấy từ CONFIGS
     """
     config_labels = config_labels or {
-        "hybrid_rerank": "Config A (hybrid + rerank)",
-        "no_rerank": "Config B (dense-only, không rerank)",
+        "hybrid": "Config A (Hybrid Search)",
+        "dense_only": "Config B (Dense-Only)",
     }
 
     names = list(comparison.keys())
@@ -309,7 +321,7 @@ def export_results(comparison: dict, config_labels: dict | None = None):
 
     content += "\n---\n\n## Recommendations\n\n"
     content += "### Cải tiến 1\n**Action:** Xem 3 worst performers ở trên, đọc `answer` + `contexts` thật (không có trong bảng này) để xác định lỗi đến từ retrieval (context sai/thiếu) hay generation (LLM bịa dù có context đúng).\n**Expected impact:** Tăng faithfulness/context_recall cho nhóm câu yếu nhất.\n\n"
-    content += "### Cải tiến 2\n**Action:** Nếu Config B (no_rerank) không thua nhiều so với Config A, cân nhắc bỏ bước rerank để giảm latency.\n**Expected impact:** Giảm chi phí/độ trễ mà không đánh đổi nhiều chất lượng.\n\n"
+    content += "### Cải tiến 2\n**Action:** Nếu Config B (Dense-Only) không thua nhiều so với Config A (Hybrid), cân nhắc bỏ nhánh BM25 + RRF để giảm độ phức tạp/latency; nếu thua rõ rệt, đó là bằng chứng giữ hybrid là đúng.\n**Expected impact:** Quyết định kiến trúc retrieval cho bản production dựa trên số liệu, không phải cảm tính.\n\n"
     content += "### Cải tiến 3\n**Action:** Với câu ngoài domain, kiểm tra context_precision — nếu thấp bất thường nghĩa là hybrid search đang trả \"rác\" thay vì trả rỗng để trigger fallback đúng.\n**Expected impact:** Fallback PageIndex kích hoạt đúng lúc, giảm câu trả lời sai domain.\n\n"
 
     RESULTS_PATH.write_text(content, encoding="utf-8")
