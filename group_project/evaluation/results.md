@@ -1,20 +1,20 @@
 # 📊 BÁO CÁO ĐÁNH GIÁ VÀ NGHIỆM THU HỆ THỐNG RAG PIPELINE v2
 
 > **Đề tài**: RAG Pipeline v2 — Hybrid Retrieval (Semantic + BM25), Vectorless Fallback (PageIndex) & Citation Generation  
-> **Nhóm**: E402 - HHQDA (Phương án B: Nhóm 5 Thành Viên — Chuyên sâu Retrieval)  
+> **Sơ đồ phân vai**: **Phương Án B: Nhóm 5 Thành Viên (Chuyên Sâu Retrieval)**  
 > **Ngày hoàn thành**: 04/08/2026  
 
 ---
 
-## 👥 1. Danh Sách Thành Viên & Phân Công Vai Trò
+## 👥 1. Danh Sách Thành Viên & Phân Công Vai Trò (Theo Phương Án B)
 
-| STT | Họ và Tên | Mã Số Sinh Viên | Vai Trò (Role) | Nhiệm Vụ Phụ Trách & Đóng Góp |
+| STT | Họ và Tên | Mã Số Sinh Viên | Vai Trò (Role theo LAB_GUIDE) | Nhiệm Vụ Phụ Trách Theo Thiết Kế |
 | :-: | :--- | :-: | :--- | :--- |
-| **1** | **Nguyễn Văn Hưng** *(Leader)* | **2A202601284** | **Role 1 — Team Leader & RAG Architect** | Điều phối tiến độ nhóm, thiết kế kiến trúc hệ thống, kiểm thử cá nhân & ghép nối Pipeline chính. |
-| **2** | **Nhữ Văn Hùng** | **2A202601372** | **Role 2 — Data & Dense Search Dev** | Thu thập dữ liệu pháp luật/tin tức (Task 1-3), xây dựng ChromaDB Vector Store (Task 4) & Dense Semantic Search (Task 5). |
-| **3** | **Đặng Minh Quang** | **2A202601108** | **Role 3 — Sparse Search & Reranking Dev** | Xây dựng BM25/TF-IDF Lexical Search (Task 6), thuật toán RRF Reranking (Task 7) & PageIndex Fallback (Task 8). |
-| **4** | **Phạm Công Đăng** | **2A202601280** | **Role 4 — Frontend & Chatbot Dev** | Phát triển ứng dụng Streamlit UI (`app.py`), kết nối Pipeline & xử lý LLM Citation Generation (Task 10). |
-| **5** | **Phạm Tuấn Anh** | **2A202601060** | **Role 5 — Evaluation & QA Engineer** | Xây dựng bộ dữ liệu `golden_dataset.json` (20 câu hỏi), thực thi pipeline RAGAS & phân tích A/B Testing. |
+| **1** | **Nguyễn Văn Hưng** *(Leader)* | **2A202601284** | **Role 1 (Team Leader & RAG Architect)** | Quản lý chung, ghép code pipeline chính (`supervisor.py` & Task 9). |
+| **2** | **Nhữ Văn Hùng** | **2A202601372** | **Role 2 (Data & Dense Search Dev)** | Task 1–3 (Data) + Task 4 (ChromaDB) + Task 5 (Semantic Search & HyDE). |
+| **3** | **Đặng Minh Quang** | **2A202601108** | **Role 3 (Sparse Search & Advanced Reranking Dev)** | Task 6 (BM25/TF-IDF) + Task 7 (RRF Reranking) + Task 8 (PageIndex Fallback). |
+| **4** | **Phạm Công Đăng** | **2A202601280** | **Role 4 (Frontend & Chatbot Developer)** | Xây dựng Streamlit Chatbot `app.py` + Task 10 (Generation có Citation). |
+| **5** | **Phạm Tuấn Anh** | **2A202601060** | **Role 5 (Evaluation & QA Engineer)** | Bộ câu hỏi `golden_dataset.json` + Đánh giá RAGAS & báo cáo so sánh A/B `results.md`. |
 
 ---
 
