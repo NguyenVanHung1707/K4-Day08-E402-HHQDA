@@ -77,6 +77,14 @@ def reorder_for_llm(chunks: list[dict]) -> list[dict]:
     Returns:
         List reordered để maximize LLM attention.
     """
+    if not isinstance(chunks, list):
+        raise TypeError('chunks must be a list')
+    if len(chunks) <= 2:
+        return list(chunks)
+    front = chunks[::2]
+    back = chunks[1::2]
+    return front + back[::-1]
+
     # TODO: Implement reordering
     #
     # if len(chunks) <= 2:
@@ -103,6 +111,18 @@ def format_context(chunks: list[dict]) -> str:
     Returns:
         Formatted context string.
     """
+    if not isinstance(chunks, list):
+        raise TypeError('chunks must be a list')
+    parts = []
+    for index, chunk in enumerate(chunks, 1):
+        metadata = chunk.get('metadata') or {}
+        source = metadata.get('source') or metadata.get('document') or metadata.get('path') or f'Source {index}'
+        doc_type = metadata.get('type') or metadata.get('section') or 'unknown'
+        content = str(chunk.get('content') or '').strip()
+        if content:
+            parts.append(f'[Document {index} | Source: {source} | Type: {doc_type}]\n{content}')
+    return '\n\n---\n\n'.join(parts)
+
     # TODO: Implement context formatting
     #
     # context_parts = []
@@ -143,6 +163,57 @@ def generate_with_citation(query: str, top_k: int = TOP_K) -> dict:
             'retrieval_source': str  # 'hybrid' hoặc 'pageindex'
         }
     """
+    if not isinstance(query, str) or not query.strip():
+        raise ValueError('query must be a non-empty string')
+    if top_k <= 0:
+        raise ValueError('top_k must be greater than zero')
+
+    try:
+        chunks = retrieve(query.strip(), top_k=top_k)
+    except NotImplementedError:
+        chunks = []
+    if not chunks:
+        return {
+            'answer': 'Tôi không thể xác minh thông tin này từ nguồn hiện có.',
+            'sources': [],
+            'retrieval_source': 'none',
+        }
+
+    reordered = reorder_for_llm(chunks)
+    context = format_context(reordered)
+    user_message = f'Context:\n{context}\n\n---\n\nQuestion: {query.strip()}'
+
+    openrouter_key = os.getenv('OPENROUTER_API_KEY')
+    openai_key = os.getenv('OPENAI_API_KEY')
+    if not openrouter_key and not openai_key:
+        raise RuntimeError('Set OPENROUTER_API_KEY or OPENAI_API_KEY in .env')
+
+    from openai import OpenAI
+    if openrouter_key:
+        client = OpenAI(api_key=openrouter_key, base_url='https://openrouter.ai/api/v1')
+        model = os.getenv('LLM_MODEL', LLM_MODEL)
+    else:
+        client = OpenAI(api_key=openai_key)
+        model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {'role': 'system', 'content': SYSTEM_PROMPT},
+            {'role': 'user', 'content': user_message},
+        ],
+        temperature=TEMPERATURE,
+        top_p=TOP_P,
+    )
+    answer = response.choices[0].message.content
+    if not answer or not answer.strip():
+        answer = 'Tôi không thể xác minh thông tin này từ nguồn hiện có.'
+    return {
+        'answer': answer.strip(),
+        'sources': chunks,
+        'retrieval_source': chunks[0].get('source', 'hybrid'),
+    }
+
     # TODO: Implement generation pipeline
     #
     # # Step 1: Retrieve
