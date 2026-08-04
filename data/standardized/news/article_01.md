@@ -1,0 +1,20 @@
+# [Bảo mật tài khoản] Sử dụng phần mềm giả lập hoặc những phần mềm tương tự khác để truy cập Shopee | Shopee Trung tâm trợ giúp
+
+**Source:** https://help.shopee.vn/portal/4/article/79263-%5BB%E1%BA%A3o-m%E1%BA%ADt-t%C3%A0i-kho%E1%BA%A3n%5D-S%E1%BB%AD-d%E1%BB%A5ng-ph%E1%BA%A7n-m%E1%BB%81m-gi%E1%BA%A3-l%E1%BA%ADp-ho%E1%BA%B7c-nh%E1%BB%AFng-ph%E1%BA%A7n-m%E1%BB%81m-t%C6%B0%C6%A1ng-t%E1%BB%B1-kh%C3%A1c-%C4%91%E1%BB%83-truy-c%E1%BA%ADp-Shopee?previousPage=secondary%20category
+**Crawled:** 2026-08-04T15:01:01.779049
+
+---
+
+# Xin chào, Shopee có thể giúp gì cho bạn?
+## [Bảo mật tài khoản] Sử dụng phần mềm giả lập hoặc những phần mềm tương tự khác để truy cập Shopee
+Shopee **không cho phép** việc sử dụng các loại phần mềm giả lập (emulator), phần mềm mô phỏng (simulator), phần mềm thực hiện tác vụ tự động (bot), hay bất kỳ các loại phần mềm có bản chất tương tự khác để truy cập Ứng dụng Shopee. Việc sử dụng những phần mềm này là **hành động vi phạm các**[** _Điều khoản Shopee_**](https://shopee.vn/docs/3516?previousPage=other%20articles)
+  
+
+Bất kỳ hành động truy cập Shopee thông qua các loại phần mềm/thiết bị bên thứ ba không được cấp phép hoặc thông qua những phiên bản Shopee không chính thức, nếu bị phát hiện, đều sẽ dẫn tới việc tài khoản Shopee của bạn[** _bị tạm thời hạn chế một số tính năng nhất định, hoặc nghiêm trọng hơn là bị khóa vĩnh viễn_**](https://help.shopee.vn/vn/s/article/T%E1%BA%A1i-sao-t%C3%A0i-kho%E1%BA%A3n-c%E1%BB%A7a-t%C3%B4i-b%E1%BB%8B-gi%E1%BB%9Bi-h%E1%BA%A1n-1542942316320?previousPage=other%20articles)
+  
+
+**⚠️****Lưu ý:**
+Trong trường hợp bạn vô tình hoặc bị một cá nhân khác truy cập vào Shopee thông qua các phương thức không được cho phép dẫn đến tài khoản Shopee của bạn bị hạn chế/bị khóa, vui lòng liên hệ [_Bộ phận CSKH Shopee_](https://help.shopee.vn/s/article/L%C3%A0m-th%E1%BA%BF-n%C3%A0o-%C4%91%E1%BB%83-li%C3%AAn-h%E1%BB%87-v%E1%BB%9Bi-b%E1%BB%99-ph%E1%BA%ADn-Ch%C4%83m-S%C3%B3c-Kh%C3%A1ch-H%C3%A0ng-c%E1%BB%A7a-Shopee-1542942387756?previousPage=other%20articles) để được hỗ trợ.
+Bạn có hài lòng với bài viết này?
+Hài lòng
+Không hài lòng
