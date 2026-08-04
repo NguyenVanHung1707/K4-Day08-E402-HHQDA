@@ -22,8 +22,12 @@ có field "deprecation" cảnh báo) và trả kết quả trong "retrieved_node
 (json.dumps(...)) trước khi viết logic parse, đừng đoán schema từ ví dụ code cũ.
 """
 
+import json
 import os
+import tempfile
+import time
 from pathlib import Path
+from typing import Any
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,10 +36,66 @@ PAGEINDEX_API_KEY = os.getenv("PAGEINDEX_API_KEY", "")
 STANDARDIZED_DIR = Path(__file__).parent.parent / "data" / "standardized"
 
 
+REGISTRY_PATH = Path(__file__).parent.parent / '.pageindex_documents.json'
+
+
+def _client():
+    if not PAGEINDEX_API_KEY:
+        raise RuntimeError('PAGEINDEX_API_KEY is not configured in .env')
+    from pageindex import PageIndexClient
+    return PageIndexClient(api_key=PAGEINDEX_API_KEY)
+
+
+def _read_registry() -> list[dict[str, str]]:
+    if not REGISTRY_PATH.exists():
+        return []
+    try:
+        value = json.loads(REGISTRY_PATH.read_text(encoding='utf-8'))
+        return value if isinstance(value, list) else []
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
+def _markdown_pdf(markdown_path: Path, output_dir: str) -> Path:
+    from fpdf import FPDF
+    font = Path('C:/Windows/Fonts/arial.ttf')
+    if not font.exists():
+        font = Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
+    if not font.exists():
+        raise RuntimeError('A Unicode TrueType font is required')
+    target = Path(output_dir) / (markdown_path.stem + '.pdf')
+    pdf = FPDF()
+    pdf.add_font('Unicode', fname=str(font))
+    pdf.set_font('Unicode', size=10)
+    pdf.add_page()
+    pdf.multi_cell(0, 5, markdown_path.read_text(encoding='utf-8'))
+    pdf.output(str(target))
+    return target
+
+
 def upload_documents():
     """
     Upload toàn bộ markdown documents lên PageIndex.
     """
+    client = _client()
+    registry = _read_registry()
+    known = {item.get('path') for item in registry}
+    files = sorted(STANDARDIZED_DIR.rglob('*.md'))
+    if not files:
+        raise FileNotFoundError('No standardized Markdown files found for PageIndex upload')
+    temp_dir = tempfile.TemporaryDirectory(prefix='.pageindex-', dir=Path(__file__).parent.parent)
+    for pdf_file in files:
+        relative = pdf_file.relative_to(STANDARDIZED_DIR).as_posix()
+        if relative in known:
+            continue
+        response = client.submit_document(str(_markdown_pdf(pdf_file, temp_dir.name)))
+        doc_id = response.get('doc_id') or response.get('id')
+        if not doc_id:
+            raise RuntimeError(f'PageIndex did not return a doc_id for {relative}')
+        registry.append({'path': relative, 'name': pdf_file.name, 'doc_id': str(doc_id)})
+    REGISTRY_PATH.write_text(json.dumps(registry, ensure_ascii=False, indent=2), encoding='utf-8')
+    return registry
+
     # TODO: Implement upload
     #
     # Tham khảo: https://github.com/VectifyAI/PageIndex
@@ -70,6 +130,42 @@ def pageindex_search(query: str, top_k: int = 5) -> list[dict]:
             'source': 'pageindex'   # Đánh dấu nguồn retrieval
         }
     """
+    if not isinstance(query, str) or not query.strip() or top_k <= 0:
+        return []
+    client = _client()
+    documents = _read_registry()
+    if not documents:
+        listing = client.list_documents(limit=100)
+        docs = listing.get('documents', []) if isinstance(listing, dict) else []
+        documents = [{'doc_id': str(d.get('doc_id') or d.get('id')), 'name': str(d.get('name') or '')} for d in docs if d.get('doc_id') or d.get('id')]
+    found = []
+    for document in documents:
+        submitted = client.submit_query(doc_id=document['doc_id'], query=query)
+        retrieval_id = submitted.get('retrieval_id') or submitted.get('id')
+        if not retrieval_id:
+            raise RuntimeError('PageIndex did not return a retrieval_id')
+        deadline = time.monotonic() + 60
+        while True:
+            response = client.get_retrieval(str(retrieval_id))
+            status = str(response.get('status', '')).lower()
+            if 'retrieved_nodes' in response or status in {'completed', 'complete', 'success'}:
+                break
+            if status in {'failed', 'error', 'cancelled'}:
+                raise RuntimeError(f'PageIndex retrieval failed: {response}')
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f'PageIndex retrieval {retrieval_id} timed out')
+            time.sleep(1)
+        for node in response.get('retrieved_nodes', []):
+            for group in node.get('relevant_contents', []):
+                for item in group:
+                    content = item.get('relevant_content', '')
+                    if content:
+                        found.append({'content': content, 'metadata': {'section': item.get('section_title', ''), 'document': document.get('name', ''), 'doc_id': document['doc_id']}, 'source': 'pageindex'})
+    results = found[:top_k]
+    for rank, result in enumerate(results, 1):
+        result['score'] = 1.0 / rank
+    return results
+
     # TODO: Implement PageIndex query
     #
     # from pageindex.client import PageIndexClient
