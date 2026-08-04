@@ -1,42 +1,102 @@
 [
   {
     "question": "Người mua có thể yêu cầu trả hàng/hoàn tiền trong thời hạn bao lâu sau khi nhận hàng?",
-    "expected_answer": "Trong vòng 15 ngày kể từ khi giao hàng thành công (24 giờ đối với thực phẩm tươi sống/đông lạnh).",
-    "expected_context": "Trang Returns and Refunds Policy, mục Return/Refund Eligibility"
+    "expected_answer": "Trong vòng 15 ngày kể từ khi đơn hàng được cập nhật giao hàng thành công. Riêng thực phẩm tươi sống và đông lạnh, thời hạn là 24 giờ.",
+    "expected_context": "returns_and_refund_policy.md, mục 3.2"
   },
   {
-    "question": "Shopee hỗ trợ những phương thức thanh toán nào?",
-    "expected_answer": "ShopeePay Wallet, thẻ tín dụng/ghi nợ, trả góp qua thẻ, QR Code, chuyển khoản qua app ngân hàng, thẻ NAPAS, Apple Pay, Google Pay, và COD.",
-    "expected_context": "Trang Payment Methods Overview"
+    "question": "Trả hàng COM (không còn nhu cầu, sản phẩm còn nguyên vẹn) áp dụng cho đối tượng nào?",
+    "expected_answer": "Chỉ áp dụng cho Người Mua hạng Vàng/Kim Cương của chương trình khách hàng thân thiết Shopee, hoặc Người Mua đang dùng gói ShopeeVIP.",
+    "expected_context": "returns_and_refund_policy.md, mục 4.1"
   },
   {
-    "question": "Người bán không được đăng bán những sản phẩm nào?",
-    "expected_answer": "Hàng giả/nhái, sản phẩm bất hợp pháp, vi phạm sở hữu trí tuệ, và các mặt hàng nằm trong danh sách cấm của sàn.",
-    "expected_context": "Trang Product Listing Regulations, mục Prohibited Content"
+    "question": "Người bán có phải chịu phí vận chuyển hoàn trả khi đơn hàng bị giao không thành công do lỗi của đơn vị vận chuyển không?",
+    "expected_answer": "Không. Người Bán không phải chịu chi phí vận chuyển hoàn trả trong trường hợp đơn giao không thành công do lỗi của đơn vị vận chuyển.",
+    "expected_context": "returns_and_refund_policy.md, mục 7.2"
+  },
+  {
+    "question": "Tiền hoàn trả cho người mua có thể được chuyển vào những phương thức nào?",
+    "expected_answer": "Ví ShopeePay, SPayLater, Thẻ nội địa Napas, Tài Khoản Ngân Hàng, thẻ tín dụng/ghi nợ đã đăng ký, hoặc Số Dư Tài Khoản Shopee của Người Mua.",
+    "expected_context": "returns_and_refund_policy.md, mục 9.4"
+  },
+  {
+    "question": "Khi đề xuất hoàn tiền ngay không cần trả hàng, số tiền hoàn tối thiểu là bao nhiêu phần trăm giá trị sản phẩm?",
+    "expected_answer": "Không được thấp hơn 50% giá trị của Sản Phẩm Hoàn Trả.",
+    "expected_context": "returns_and_refund_policy.md, mục 9.5"
+  },
+  {
+    "question": "Sản phẩm phải còn ít nhất bao nhiêu phần trăm hạn sử dụng khi Người Bán giao hàng?",
+    "expected_answer": "Còn ít nhất 30% thời hạn sử dụng và còn ít nhất 30 ngày tính từ thời điểm hiện tại đến ngày hết hạn.",
+    "expected_context": "selling_policy.md, mục D.2.a"
+  },
+  {
+    "question": "Hình ảnh sản phẩm đăng bán trên Shopee cần đáp ứng yêu cầu gì về diện tích sản phẩm thật trong ảnh?",
+    "expected_answer": "Phải có ít nhất một ảnh thật do Người Bán tự chụp, trong đó diện tích sản phẩm thật chiếm ít nhất 40% diện tích toàn ảnh.",
+    "expected_context": "selling_policy.md, mục C.1.b"
+  },
+  {
+    "question": "Người bán mỹ phẩm thương hiệu trong nước cần đăng kèm những loại giấy chứng nhận nào?",
+    "expected_answer": "Phiếu công bố mỹ phẩm do Bộ/Sở Y tế cấp; Chứng nhận đại lý/Hợp đồng mua bán/hóa đơn nhập hàng (nếu là đại lý); hóa đơn nhập hàng và chứng nhận đại lý của bên phát hành hóa đơn (nếu nhập từ trung gian).",
+    "expected_context": "selling_policy.md, mục C.3.1"
+  },
+  {
+    "question": "Tên sản phẩm đăng bán trên Shopee phải dùng ngôn ngữ gì?",
+    "expected_answer": "Tiếng Việt có dấu, đủ ký tự, rõ nghĩa, không dùng ký tự đặc biệt hoặc viết tắt.",
+    "expected_context": "selling_policy.md, mục C.2.a"
+  },
+  {
+    "question": "Những vật phẩm nào bị cấm đăng bán liên quan đến quân đội, công an, chính phủ?",
+    "expected_answer": "Các vật phẩm, thiết bị được cấp bởi chính phủ/công an/quân đội, và các thiết bị/trang phục/vật dụng có chứa hình ảnh quốc huy.",
+    "expected_context": "prohibited_and_restricted_products_policy.md, mục 4.2"
+  },
+  {
+    "question": "Tiền ảo như Bitcoin có được phép rao bán trên Shopee không?",
+    "expected_answer": "Không. Tiền ảo (Bitcoin, Pi,...) nằm trong danh mục dịch vụ/hàng hóa bất hợp pháp bị cấm đăng bán.",
+    "expected_context": "prohibited_and_restricted_products_policy.md, mục 4.4.a"
+  },
+  {
+    "question": "Vi phạm Chính sách Cấm/Hạn Chế Sản Phẩm có thể dẫn tới những chế tài nào?",
+    "expected_answer": "Sản phẩm bị xóa, tài khoản bị giới hạn quyền, tài khoản bị đình chỉ hoặc xóa, cấn trừ/phong tỏa số dư tài khoản Shopee, và các chế tài khác theo pháp luật (phạt hành chính, xử lý hình sự, bồi thường thiệt hại).",
+    "expected_context": "prohibited_and_restricted_products_policy.md, mục 3"
+  },
+  {
+    "question": "Shopee thu thập dữ liệu cá nhân của người dùng trong những trường hợp nào?",
+    "expected_answer": "Khi đăng ký/sử dụng dịch vụ, gửi biểu mẫu, ký thỏa thuận, tương tác qua điện thoại/email/mạng xã hội, dùng cookie trên nền tảng, liên kết mạng xã hội, thực hiện giao dịch, gửi phản hồi/khiếu nại, tham gia cuộc thi, và các hoạt động khác trên nền tảng.",
+    "expected_context": "privacy_policy.md, mục 2.1"
+  },
+  {
+    "question": "Nếu tôi cung cấp dữ liệu cá nhân của người khác (vd người thân) cho Shopee thì tôi cần đảm bảo điều gì?",
+    "expected_answer": "Phải đảm bảo đã nhận được sự đồng ý của người đó để Shopee xử lý dữ liệu cá nhân của họ theo Chính sách Bảo mật.",
+    "expected_context": "privacy_policy.md, mục 2.3"
+  },
+  {
+    "question": "Sàn Shopee tiếp nhận yêu cầu bảo vệ quyền sở hữu trí tuệ cho những đối tượng quyền nào?",
+    "expected_answer": "Quyền tác giả và quyền liên quan, và một số quyền sở hữu công nghiệp gồm sáng chế, kiểu dáng công nghiệp, nhãn hiệu (kể cả nhãn hiệu liên kết/chứng nhận), tên thương mại.",
+    "expected_context": "ip_coordination_process.md, mục 2.a"
+  },
+  {
+    "question": "Nếu sử dụng phần mềm giả lập (emulator) để truy cập Shopee thì tài khoản có bị ảnh hưởng không?",
+    "expected_answer": "Có. Shopee không cho phép dùng phần mềm giả lập/mô phỏng/bot để truy cập ứng dụng; tài khoản có thể bị hạn chế một số tính năng hoặc bị khóa vĩnh viễn nếu bị phát hiện.",
+    "expected_context": "article_01.md (Bảo mật tài khoản — phần mềm giả lập)"
+  },
+  {
+    "question": "Có bao nhiêu cách đăng nhập Shopee khi quên mật khẩu, và cần điều kiện gì để dùng được?",
+    "expected_answer": "4 cách: đăng nhập bằng SMS/OTP, tạo mật khẩu mới, đăng nhập bằng Google, đăng nhập bằng Facebook. Chỉ áp dụng với tài khoản đã đăng nhập trong vòng 180 ngày gần nhất.",
+    "expected_context": "article_05.md (Cách đăng nhập khi quên/mất mật khẩu)"
   },
   {
     "question": "Thủ tục xin cấp lại bằng lái xe máy A1 bị mất gồm những giấy tờ gì?",
-    "expected_answer": "Thông tin này nằm ngoài phạm vi hỗ trợ và dữ liệu chính sách của hệ thống Shopee.",
-    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
+    "expected_answer": "Tôi không thể xác minh thông tin này từ nguồn hiện có — nằm ngoài phạm vi dữ liệu chính sách Shopee của hệ thống.",
+    "expected_context": "Out-of-domain (kỳ vọng fallback PageIndex hoặc trả lời không xác minh được)"
   },
   {
     "question": "Dự báo thời tiết ngày mai tại TP. Hồ Chí Minh có mưa không?",
-    "expected_answer": "Hệ thống không cung cấp thông tin dự báo thời tiết.",
-    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
-  },
-  {
-    "question": "Hướng dẫn các bước mở tài khoản thanh toán tại ngân hàng Vietcombank?",
-    "expected_answer": "Dữ liệu hệ thống không chứa hướng dẫn mở tài khoản của các ngân hàng thương mại bên ngoài.",
-    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
+    "expected_answer": "Tôi không thể xác minh thông tin này từ nguồn hiện có — hệ thống không cung cấp thông tin dự báo thời tiết.",
+    "expected_context": "Out-of-domain (kỳ vọng fallback PageIndex hoặc trả lời không xác minh được)"
   },
   {
     "question": "Công thức và các bước nấu món lẩu thái hải sản chua cay tại nhà?",
-    "expected_answer": "Nội dung này không liên quan đến quy định mua bán hay hỗ trợ trên sàn thương mại điện tử.",
-    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
-  },
-  {
-    "question": "Mã lỗi E04 trên máy giặt Toshiba là lỗi gì và sửa như thế nào?",
-    "expected_answer": "Hệ thống không có tài liệu hướng dẫn sửa chữa thiết bị điện gia dụng.",
-    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
+    "expected_answer": "Tôi không thể xác minh thông tin này từ nguồn hiện có — nội dung không liên quan đến quy định mua bán hay hỗ trợ trên sàn thương mại điện tử.",
+    "expected_context": "Out-of-domain (kỳ vọng fallback PageIndex hoặc trả lời không xác minh được)"
   }
 ]
