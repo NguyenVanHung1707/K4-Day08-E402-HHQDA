@@ -20,9 +20,7 @@ Logic:
 
     Cách sửa đúng: giữ điểm cosine similarity GỐC của semantic_search (trước khi qua
     RRF) làm căn cứ quyết định fallback, tách biệt khỏi điểm RRF dùng để sắp xếp kết
-    quả cuối cùng. Calibrate threshold bằng cách tự đo: chạy vài câu hỏi chắc chắn
-    liên quan và vài câu chắc chắn lạc đề/rác qua semantic_search, xem khoảng cách
-    điểm số giữa hai nhóm rồi chọn ngưỡng nằm giữa.
+    quả cuối cùng.
 """
 
 from .task5_semantic_search import semantic_search
@@ -35,10 +33,8 @@ from .task8_pageindex_vectorless import pageindex_search
 # CONFIGURATION
 # =============================================================================
 
-# TODO: Calibrate threshold này bằng cách tự đo điểm cosine của semantic_search
-# cho câu hỏi liên quan vs câu hỏi lạc đề (xem ghi chú ở trên) — ĐỪNG copy nguyên
-# giá trị mẫu, mỗi corpus/embedding model sẽ cho khoảng điểm khác nhau.
-SCORE_THRESHOLD = 0.3   # Nếu best score (cosine gốc) < threshold → fallback PageIndex
+# Điểm Cosine Similarity gốc từ semantic_search cho ngưỡng fallback
+SCORE_THRESHOLD = 0.48
 DEFAULT_TOP_K = 5
 RERANK_METHOD = "rrf"  # "cross_encoder" | "mmr" | "rrf"
 
@@ -77,33 +73,45 @@ def retrieve(
             'source': str  # 'hybrid' hoặc 'pageindex'
         }
     """
-    # TODO: Implement full retrieval pipeline
-    #
-    # Step 1: Song song chạy semantic + lexical
-    # dense_results = semantic_search(query, top_k=top_k * 2)
-    # sparse_results = lexical_search(query, top_k=top_k * 2)
-    #
-    # Step 2: Merge bằng RRF
-    # merged = rerank_rrf([dense_results, sparse_results], top_k=top_k * 2)
-    # for item in merged:
-    #     item["source"] = "hybrid"
-    #
-    # Step 3: Rerank
-    # if use_reranking and merged:
-    #     final_results = rerank(query, merged, top_k=top_k, method=RERANK_METHOD)
-    # else:
-    #     final_results = merged[:top_k]
-    #
-    # Step 4: Check threshold DÙNG ĐIỂM COSINE GỐC (dense_results), KHÔNG PHẢI RRF
-    # best_score = dense_results[0]["score"] if dense_results else 0.0
-    # if best_score < score_threshold:
-    #     print(f"  ⚠ Semantic best score ({best_score:.3f}) < threshold ({score_threshold})")
-    #     fallback = pageindex_search(query, top_k=top_k)
-    #     if fallback:
-    #         return fallback
-    #
-    # return final_results[:top_k]
-    raise NotImplementedError("Implement retrieve")
+    if not query or not query.strip():
+        return []
+
+    # Step 1: Song song / đồng thời gọi semantic search & lexical search
+    dense_results = semantic_search(query, top_k=top_k * 2)
+    sparse_results = lexical_search(query, top_k=top_k * 2)
+
+    # Step 2: Lấy điểm Cosine Similarity GỐC của semantic_search để quyết định Fallback
+    best_dense_score = dense_results[0]["score"] if (dense_results and "score" in dense_results[0]) else 0.0
+
+    # Step 3: Kiểm tra điều kiện Fallback nếu điểm Cosine gốc < threshold
+    if best_dense_score < score_threshold or not dense_results:
+        try:
+            fallback = pageindex_search(query, top_k=top_k)
+            if fallback:
+                for item in fallback:
+                    item.setdefault("source", "pageindex")
+                return fallback[:top_k]
+        except Exception:
+            pass  # Nếu PageIndex chưa cấu hình API Key hoặc lỗi, chuyển tiếp dùng hybrid
+
+    # Step 4: Merge bằng RRF (Reciprocal Rank Fusion)
+    merged = rerank_rrf([dense_results, sparse_results], top_k=top_k * 2)
+    for item in merged:
+        item["source"] = "hybrid"
+
+    # Step 5: Rerank nếu được yêu cầu
+    if use_reranking and merged:
+        if RERANK_METHOD == "rrf":
+            final_results = merged[:top_k]
+        else:
+            final_results = rerank(query, merged, top_k=top_k, method=RERANK_METHOD)
+    else:
+        final_results = merged[:top_k]
+
+    for item in final_results:
+        item.setdefault("source", "hybrid")
+
+    return final_results[:top_k]
 
 
 if __name__ == "__main__":
@@ -119,4 +127,4 @@ if __name__ == "__main__":
         print("-" * 60)
         results = retrieve(q, top_k=3)
         for i, r in enumerate(results, 1):
-            print(f"  {i}. [{r['score']:.3f}] [{r['source']}] {r['content'][:80]}...")
+            print(f"  {i}. [{r['score']:.3f}] [{r.get('source', 'hybrid')}] {r['content'][:80]}...")
