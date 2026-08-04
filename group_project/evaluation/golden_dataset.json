@@ -13,5 +13,30 @@
     "question": "Người bán không được đăng bán những sản phẩm nào?",
     "expected_answer": "Hàng giả/nhái, sản phẩm bất hợp pháp, vi phạm sở hữu trí tuệ, và các mặt hàng nằm trong danh sách cấm của sàn.",
     "expected_context": "Trang Product Listing Regulations, mục Prohibited Content"
+  },
+  {
+    "question": "Thủ tục xin cấp lại bằng lái xe máy A1 bị mất gồm những giấy tờ gì?",
+    "expected_answer": "Thông tin này nằm ngoài phạm vi hỗ trợ và dữ liệu chính sách của hệ thống Shopee.",
+    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
+  },
+  {
+    "question": "Dự báo thời tiết ngày mai tại TP. Hồ Chí Minh có mưa không?",
+    "expected_answer": "Hệ thống không cung cấp thông tin dự báo thời tiết.",
+    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
+  },
+  {
+    "question": "Hướng dẫn các bước mở tài khoản thanh toán tại ngân hàng Vietcombank?",
+    "expected_answer": "Dữ liệu hệ thống không chứa hướng dẫn mở tài khoản của các ngân hàng thương mại bên ngoài.",
+    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
+  },
+  {
+    "question": "Công thức và các bước nấu món lẩu thái hải sản chua cay tại nhà?",
+    "expected_answer": "Nội dung này không liên quan đến quy định mua bán hay hỗ trợ trên sàn thương mại điện tử.",
+    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
+  },
+  {
+    "question": "Mã lỗi E04 trên máy giặt Toshiba là lỗi gì và sửa như thế nào?",
+    "expected_answer": "Hệ thống không có tài liệu hướng dẫn sửa chữa thiết bị điện gia dụng.",
+    "expected_context": "Out-of-domain (Fallback to PageIndex / Null)"
   }
 ]
