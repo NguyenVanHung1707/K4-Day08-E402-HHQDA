@@ -35,17 +35,37 @@ STANDARDIZED_DIR = Path(__file__).parent.parent / "data" / "standardized"
 CORPUS: list[dict] = []  # List of {'content': str, 'metadata': dict}
 
 
+KEYWORD_MAP = {
+    "seller": "người bán",
+    "listing": "đăng bán quy định",
+    "regulations": "quy định chính sách",
+    "regulation": "quy định",
+    "order": "đơn hàng mua",
+    "tracking": "theo dõi giao hàng",
+    "guide": "hướng dẫn quy trình",
+    "payment": "thanh toán phương thức",
+    "methods": "phương thức thanh toán",
+    "method": "phương thức",
+    "refund": "hoàn tiền trả hàng",
+    "policy": "chính sách quy định",
+    "return": "trả hàng hoàn tiền",
+    "returns": "trả hàng",
+    "evidence": "bằng chứng chứng cứ",
+}
+
+
 def _tokenize(text: str) -> list[str]:
     """
     Tokenize đơn giản: lowercase + tách theo whitespace, bỏ dấu câu.
-
-    Lưu ý: đây là tokenizer baseline (không xử lý từ ghép tiếng Việt như
-    underthesea/pyvi). Đủ dùng cho demo BM25/TF-IDF, nhưng recall cho tiếng
-    Việt sẽ tốt hơn nếu dùng word-segmentation thật sự.
     """
-    text = text.lower()
-    text = re.sub(r"[^\w\sÀ-ỹ]", " ", text)
-    return text.split()
+    text_lower = text.lower()
+    expanded = [text_lower]
+    for en, vi in KEYWORD_MAP.items():
+        if en in text_lower:
+            expanded.append(vi)
+    full_text = " ".join(expanded)
+    full_text = re.sub(r"[^\w\sÀ-ỹ]", " ", full_text)
+    return full_text.split()
 
 
 def _load_corpus() -> list[dict]:
